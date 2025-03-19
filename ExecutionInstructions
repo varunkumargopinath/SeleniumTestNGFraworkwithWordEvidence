@@ -1,0 +1,6 @@
+
+Login credentials needs to be passed via command prompt as mvn build
+Command:  mvn clean test -DsuiteXmlFile=<Test case Xml file>  -Denv=<Test environment url> Duser=<username> -Dpass=<password><encrypted(Base64)>
+
+Example
+mvn clean test -DsuiteXmlFile=Runner.xml  -Denv=https://www.google.com -Duname=abc@xyz.com -Dpass=S2lsb=(encrypted password)

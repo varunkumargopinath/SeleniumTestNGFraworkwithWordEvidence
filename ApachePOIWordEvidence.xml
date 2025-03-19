@@ -1,0 +1,11 @@
+<suite name="Suite">
+	<parameter name="browser" value="chrome" />
+	<parameter name="tool" value="Google" />
+	<test name="Test">
+		<classes>
+			<class name="Tests.playground" />
+		</classes>
+	</test>
+	<!--   Test   -->
+</suite> <!--   Suite   -->
+ 
