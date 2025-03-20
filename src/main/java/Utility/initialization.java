@@ -5,21 +5,9 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.Reader;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.text.SimpleDateFormat;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVParser;
-import org.apache.commons.csv.CSVPrinter;
-import org.apache.commons.csv.CSVRecord;
-import org.apache.commons.io.FileUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
@@ -27,7 +15,6 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.openqa.selenium.By;
-import org.openqa.selenium.ElementClickInterceptedException;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
@@ -39,59 +26,25 @@ import org.openqa.selenium.edge.EdgeDriver;
 import org.openqa.selenium.edge.EdgeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.interactions.Actions;
-import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.Assert;
-import com.aventstack.extentreports.ExtentReports;
-import com.aventstack.extentreports.ExtentTest;
-import com.aventstack.extentreports.MediaEntityBuilder;
-import com.aventstack.extentreports.Status;
-import com.aventstack.extentreports.reporter.ExtentSparkReporter;
 
 public class initialization extends WordEvidenceBaseMethods {
 
 	public static WebDriver driver;
-	public String username, password = "";
 	public static String browser;
 	public static Properties locatorString, data;
 	public static WebDriverWait wait;
 	public JavascriptExecutor js;
 	public Actions actions;
-	public static ExtentReports report;
-	public static ExtentTest logger;
 	public static String recordList[];
-	public static CSVParser csvread = null;
-	public static CSVPrinter csvPrinter = null;
-
-	public void reports() throws Exception {
-
-		File file = new File(System.getProperty("user.dir") + "/Html Reports/Extent.html");
-		new File(System.getProperty("user.dir") + "/Html Reports").mkdir();
-		ExtentSparkReporter extent = new ExtentSparkReporter(file);
-		System.out.println(System.getProperty("user.dir"));
-		report = new ExtentReports();
-		report.attachReporter(extent);
-		extent.config().setDocumentTitle("QE Team");
-
-	}
 
 	public static String getScreenshot(WebDriver driver) {
 		TakesScreenshot ts = (TakesScreenshot) driver;
 		File src = ts.getScreenshotAs(OutputType.FILE);
-		SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy-hh-mm-ss-ms");
-		String path = "Screenshot/" + sdf.format(new Date()) + ".png";
-		new File(System.getProperty("user.dir") + "/Html Reports/Screenshot").mkdir();
-		File destination = new File(
-				System.getProperty("user.dir") + "/Html Reports/Screenshot/" + sdf.format(new Date()) + ".png");
-		try {
-			FileUtils.copyFile(src, destination);
-		} catch (IOException e) {
-			logger.log(Status.FAIL, "Screen Shot Capture Failed: " + e.getMessage());
-			System.out.println("Capture Failed " + e.getMessage());
-		}
-		return path;
+		return src.getPath();
 	}
 
 	public void initProperties() throws Exception {
@@ -120,28 +73,30 @@ public class initialization extends WordEvidenceBaseMethods {
 	}
 
 	public WebDriver launchBrowser(String browser) throws InterruptedException, IOException {
-		this.browser=browser;
+		this.browser = browser;
 		switch (browser) {
 
 		case "firefox":
-			System.setProperty("webdriver.gecko.driver", ".\\geckodriver.exe");
 			driver = new FirefoxDriver();
 			break;
 
 		case "chrome":
-			//System.setProperty("webdriver.chrome.driver", ".\\chromedriver.exe");
+			// System.setProperty("webdriver.chrome.driver", ".\\chromedriver.exe");
 			ChromeOptions options = new ChromeOptions();
+			// options.addArguments("--headless");
 			options.addArguments("--start-maximized");
 			options.addArguments("--incognito");
+			options.addArguments("--disable-gpu");
+			options.addArguments("--remote-allow-origins=*");
 			options.addArguments("--disable-dev-shm-usage");
 			options.addArguments("--ignore-ssl-errors=yes");
 			options.addArguments("--ignore-certificate-errors");
-			//options.addArguments("--remote-allow-origins=*");
+
 			driver = new ChromeDriver(options);
 			break;
 
 		case "edge":
-			System.setProperty("webdriver.edge.driver", ".\\msedgedriver.exe");
+			// System.setProperty("webdriver.edge.driver", ".\\msedgedriver.exe");
 			EdgeOptions edgeOptions = new EdgeOptions();
 			edgeOptions.addArguments("-inprivate");
 			edgeOptions.addArguments("--start-maximized");
@@ -152,42 +107,11 @@ public class initialization extends WordEvidenceBaseMethods {
 			break;
 		}
 
-		String env = System.getProperty("env");
-		env="https://demowebshop.tricentis.com/";
+		String env = "https://demowebshop.tricentis.com/";
 		System.out.println(env);
 		driver.get(env);
-
 		driver.manage().timeouts().implicitlyWait(20, TimeUnit.SECONDS);
 		return driver;
-	}
-
-	public boolean waitForJSandJQueryToLoad() {
-
-		WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(30));
-
-		// wait for jQuery to load
-		ExpectedCondition<Boolean> jQueryLoad = new ExpectedCondition<Boolean>() {
-			@Override
-			public Boolean apply(WebDriver driver) {
-				try {
-					return ((Long) (((JavascriptExecutor) driver)).executeScript("return jQuery.active") == 0);
-				} catch (Exception e) {
-					// no jQuery present
-					return true;
-				}
-			}
-		};
-
-		// wait for Javascript to load
-		ExpectedCondition<Boolean> jsLoad = new ExpectedCondition<Boolean>() {
-			@Override
-			public Boolean apply(WebDriver driver) {
-				return (((JavascriptExecutor) driver)).executeScript("return document.readyState").toString()
-						.equals("complete");
-			}
-		};
-
-		return wait.until(jQueryLoad) && wait.until(jsLoad);
 	}
 
 	public WebElement creatLocator(String label) throws IOException {
@@ -257,18 +181,19 @@ public class initialization extends WordEvidenceBaseMethods {
 			System.out.println("Webelement creation failed for: " + label);
 			Ex.printStackTrace();
 			System.out.println("*****************************************");
-			TakeScreenShot("Fail", "WebElement capture failed for " + label);
 			Assert.fail("Webelement creation failed for: " + label);
 		}
 		return ele;
 	}
 
-	public WebDriver start(String browser) throws Exception {
-		return launchBrowser(browser);
-	}
-
 	public void stop() {
-		driver.quit();
+		try {
+			Thread.sleep(3000);
+			driver.quit();
+		} catch (Exception e) {
+
+		}
+
 	}
 
 	public void clickOnElement(String label) {
@@ -278,16 +203,14 @@ public class initialization extends WordEvidenceBaseMethods {
 			wait.until(ExpectedConditions.elementToBeClickable(ele));
 			js = (JavascriptExecutor) driver;
 			js.executeScript("arguments[0].setAttribute('style', 'background: yellow; border: 2px solid red;');", ele);
-			EnterTestStepDescriptionWithScreenshotForInfo(new String[]{"Clicked on \""+label+"\""});
-			//js.executeScript("arguments[0].style.backgroundColor = 'yellow';",ele);
+			EnterTestStepDescriptionWithScreenshotForInfo(new String[] { "Clicked on \"" + label + "\"" });
 			js.executeScript("arguments[0].click();", ele);
-			//ele.click();
+			// ele.click();
 		} catch (Exception e) {
 			e.printStackTrace();
-			logger.log(Status.FAIL, e.getMessage());
 			Assert.fail(e.getMessage());
 		}
-		
+
 	}
 
 	public void doubleClickOnElement(WebElement ele) throws InterruptedException, IOException {
@@ -311,8 +234,9 @@ public class initialization extends WordEvidenceBaseMethods {
 			ele.sendKeys(text);
 			js = (JavascriptExecutor) driver;
 			js.executeScript("arguments[0].setAttribute('style', 'background: yellow; border: 2px solid red;');", ele);
-			EnterTestStepDescriptionWithScreenshotForInfo(new String[]{"Enter \""+text+"\" in the \""+locator+"\" Field"});
-			
+			EnterTestStepDescriptionWithScreenshotForInfo(
+					new String[] { "Enter \"" + text + "\" in the \"" + locator + "\" Field" });
+
 		} catch (Exception ex) {
 			System.out.println(ex);
 		}
@@ -365,34 +289,6 @@ public class initialization extends WordEvidenceBaseMethods {
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
 			e.printStackTrace();
-			logger.log(Status.FAIL, e.getMessage());
-			Assert.fail(e.getMessage());
-		}
-		return Data;
-	}
-
-	public Object[][] readDataFromCSV(String fileName) {
-
-		Object Data[][] = null;
-		try {
-			// To read CSV
-			Reader reader = Files.newBufferedReader(Paths.get(".//src/main/resources/" + fileName));
-			csvread = new CSVParser(reader,
-					CSVFormat.DEFAULT.withFirstRecordAsHeader().withIgnoreHeaderCase().withTrim());
-			int NoOfRows = new CSVParser(Files.newBufferedReader(Paths.get(".//src/main/resources/" + fileName)),
-					CSVFormat.DEFAULT.withFirstRecordAsHeader()).getRecords().size();
-			int NoOfColumns = csvread.getHeaderNames().size();
-			Data = new Object[NoOfRows][NoOfColumns];
-			System.out.println("Rows: " + NoOfRows + "\nColumns: " + NoOfColumns);
-
-			for (CSVRecord csvRecord : csvread) {
-				Data[(int) (csvRecord.getRecordNumber()) - 1] = csvRecord.toList().toArray();
-				System.out.println(csvRecord.toList());
-			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			logger.log(Status.FAIL, e.getMessage());
 			Assert.fail(e.getMessage());
 		}
 		return Data;
@@ -428,7 +324,6 @@ public class initialization extends WordEvidenceBaseMethods {
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
 			e.printStackTrace();
-			logger.log(Status.FAIL, e.getMessage());
 			Assert.fail(e.getMessage());
 		}
 
@@ -463,7 +358,6 @@ public class initialization extends WordEvidenceBaseMethods {
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
 			e.printStackTrace();
-			logger.log(Status.FAIL, e.getMessage());
 			Assert.fail(e.getMessage());
 		}
 		return value;
@@ -516,31 +410,9 @@ public class initialization extends WordEvidenceBaseMethods {
 			System.out.println("Scroll for Webelement  failed for: " + label);
 			Ex.printStackTrace();
 			System.out.println("*****************************************");
-			TakeScreenShot("Fail", "Scroll for WebElement  failed for " + label);
 			Assert.fail("Scroll for Webelement  failed for: " + label);
 		}
 
-	}
-
-	public void TakeScreenShot(String status, String str) throws IOException {
-		if (status.equalsIgnoreCase("pass"))
-			logger.log(Status.PASS, str, MediaEntityBuilder.createScreenCaptureFromPath(getScreenshot(driver)).build());
-		else if (status.equalsIgnoreCase("fail")) {
-			logger.log(Status.FAIL, str, MediaEntityBuilder.createScreenCaptureFromPath(getScreenshot(driver)).build());
-			Assert.fail(str);
-		} else
-			logger.log(Status.INFO, str, MediaEntityBuilder.createScreenCaptureFromPath(getScreenshot(driver)).build());
-	}
-
-	public boolean isElementDisplay(String label) {
-		try {
-			WebElement ele = creatLocator(label);
-			ele.isDisplayed();
-
-		} catch (Exception ex) {
-			System.out.println(ex);
-		}
-		return true;
 	}
 
 	public String getTextfromElement(String label) {
@@ -560,90 +432,6 @@ public class initialization extends WordEvidenceBaseMethods {
 			WebElement ele = creatLocator(label);
 
 			ele.clear();
-
-		} catch (Exception ex) {
-			System.out.println(ex.getMessage());
-		}
-
-	}
-
-	public List<WebElement> creatLocatorListElement(String label) {
-		List<WebElement> eleList = null;
-
-		try {
-			String labelText = locatorString.getProperty(label);
-
-			String labelTextArray[] = labelText.split("~");
-			String method = labelTextArray[0];
-			String loc = labelTextArray[1];
-			switch (method) {
-			case "xpath":
-				eleList = driver.findElements(By.xpath(loc));
-				break;
-			case "css":
-				eleList = driver.findElements(By.cssSelector(loc));
-				break;
-			default:
-				System.out.println("Invalid locator type");
-				break;
-			}
-		} catch (Exception Ex) {
-			System.out.println("*****************************************");
-			System.out.println(Ex);
-			System.out.println("List of Webelement creation failed for: " + label);
-			System.out.println("*****************************************");
-		}
-		return eleList;
-	}
-
-	public void refreshUntilTextBecome(String refreshBtnLocator, String Textlocator, String valueIsToBe)
-			throws IOException, InterruptedException {
-
-		int NoOfTimes = Integer.valueOf(data.getProperty("MaxNoOfTimesRefreshButtonToBePressed"));
-		Thread.sleep(Integer.valueOf(data.getProperty("FIVE_SECOND")));
-		int count = 0;
-		boolean flag = true;
-		do {
-			flag = true;
-			clickOnElement(refreshBtnLocator);
-			Thread.sleep(Integer.valueOf(data.getProperty("FOUR_SECOND")));
-			List<WebElement> eleList = creatLocatorListElement(Textlocator);
-			js.executeScript("arguments[0].scrollIntoView();", eleList.get(0));
-			for (int i = 0; i < eleList.size(); i++) {
-				Thread.sleep(Integer.valueOf(data.getProperty("ONE_SECOND")));
-				js.executeScript("arguments[0].scrollIntoView();", eleList.get(i));
-				if (!eleList.get(i).getText().equalsIgnoreCase(valueIsToBe)) {
-					flag = false;
-					break;
-				}
-			} 	
-			if (flag)
-				break;
-
-			if (count > NoOfTimes) {
-				TakeScreenShot("fail", "Maximum No Of Times Refresh Button Pressing  reached:" + NoOfTimes);
-				break;
-			}
-			count++;
-		} while (true);
-
-		if (flag)
-
-			TakeScreenShot("Pass", "Order status turns to " + valueIsToBe);
-		else
-			TakeScreenShot("Fail", "Order status doesn't change");
-
-	}
-
-	public void getListofDropdownOptionsClick(String label, String opts) throws InterruptedException {
-		try {
-			List<WebElement> listofelement = creatLocatorListElement(label);
-			for (int i = 0; i < listofelement.size(); i++) {
-				if (listofelement.get(i).getText().equalsIgnoreCase(opts)) {
-					listofelement.get(i).click();
-					break;
-				}
-			}
 
 		} catch (Exception ex) {
 			System.out.println(ex.getMessage());
@@ -830,46 +618,4 @@ public class initialization extends WordEvidenceBaseMethods {
 		return convtIntVal;
 	}
 
-	public void getListofDropdownOptionsClickFromOptionFirst(String label, String opts) throws InterruptedException {
-		try {
-			List<WebElement> listofelement = creatLocatorListElement(label);
-			for (int i = 1; i <= listofelement.size() - 1; i++) {
-				if (listofelement.get(i).getText().contains(opts)) {
-					listofelement.get(i).click();
-					break;
-				}
-			}
-
-		} catch (Exception ex) {
-			System.out.println(ex.getMessage());
-		}
-
-	}
-
-	public String fetchNofromString(String str) {
-
-		List<String> lst = new ArrayList<String>();
-		String temp = "";
-		for (char c : str.toCharArray()) {
-
-			if (Character.isDigit(c)) {
-				temp += c;
-			} else {
-				if (temp.equals(""))
-					continue;
-				else
-					lst.add(temp);
-				temp = "";
-			}
-
-		}
-		if (!temp.equals(""))
-			lst.add(temp);
-		String MaxStr = "";
-		for (String s : lst) {
-			if (s.length() > MaxStr.length())
-				MaxStr = s;
-		}
-		return MaxStr;
-	}
 }

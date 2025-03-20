@@ -7,7 +7,6 @@ import java.net.InetAddress;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-
 import org.apache.poi.util.Units;
 import org.apache.poi.wp.usermodel.HeaderFooterType;
 import org.apache.poi.xwpf.usermodel.ParagraphAlignment;
@@ -24,8 +23,6 @@ import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTblWidth;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTc;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.STTblWidth;
 import org.testng.Assert;
-
-import com.aventstack.extentreports.Status;
 
 public class WordEvidenceBaseMethods {
 	
@@ -137,7 +134,6 @@ public class WordEvidenceBaseMethods {
 		} catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
-			initialization.logger.log(Status.FAIL, e.getMessage());
 			Assert.fail(e.getMessage());
 		}
 
@@ -145,12 +141,9 @@ public class WordEvidenceBaseMethods {
 
 	public static XWPFParagraph EnterScreenshotParagraph() {
 		XWPFParagraph ScreenshotPar = null;
-		//XWPFDocument document= new XWPFDocument();
+		
 		try {
-			String screenshot = System.getProperty("user.dir") + "\\Html Reports\\"
-					+ initialization.getScreenshot(initialization.driver);
-
-			Thread.sleep(500);
+			String screenshot = initialization.getScreenshot(initialization.driver);
 			
 			InputStream screenshotis = new FileInputStream(screenshot);
 			ScreenshotPar =Evidence.createParagraph();
