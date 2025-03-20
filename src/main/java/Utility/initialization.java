@@ -191,9 +191,7 @@ public class initialization extends WordEvidenceBaseMethods {
 			Thread.sleep(3000);
 			driver.quit();
 		} catch (Exception e) {
-
 		}
-
 	}
 
 	public void clickOnElement(String label) {
@@ -292,76 +290,6 @@ public class initialization extends WordEvidenceBaseMethods {
 			Assert.fail(e.getMessage());
 		}
 		return Data;
-	}
-
-	public void WritetoExcelUsingSheetnameAndColumn(String sheetName, int RowNo, int ColumnNo, String Data) {
-
-		File file = new File(System.getProperty("user.dir") + "/src/main/resources/DataInputAndOutput.xlsx");
-		FileInputStream inputStream;
-		try {
-			inputStream = new FileInputStream(file);
-
-			try (Workbook wb = new XSSFWorkbook(inputStream)) {
-				if (wb.getSheetIndex(sheetName) == -1) {
-					throw new IllegalArgumentException(sheetName + " sheet not found");
-				}
-				Sheet sh = wb.getSheet(sheetName);
-				Row row = sh.getRow(RowNo - 1);
-				if (row == null) {
-					row = sh.createRow(RowNo - 1);
-				}
-				Cell cell = row.getCell(ColumnNo - 1);
-				if (cell == null)
-					cell = row.createCell(ColumnNo - 1);
-				cell.setCellValue(Data);
-
-				FileOutputStream fos = new FileOutputStream(
-						System.getProperty("user.dir") + "/src/main/resources/DataInputAndOutput.xlsx");
-				wb.write(fos);
-				inputStream.close();
-				fos.close();
-			}
-		} catch (Exception e) {
-			System.out.println(e.getMessage());
-			e.printStackTrace();
-			Assert.fail(e.getMessage());
-		}
-
-	}
-
-	public String ReadFromExcelUsingSheetnameAndColumn(String sheetName, int RowNo, int ColumnNo) {
-
-		File file = new File(System.getProperty("user.dir") + "/src/main/resources/DataInputAndOutput.xlsx");
-		FileInputStream inputStream;
-		String value = "";
-		try {
-			inputStream = new FileInputStream(file);
-
-			try (Workbook wb = new XSSFWorkbook(inputStream)) {
-				if (wb.getSheetIndex(sheetName) == -1) {
-					throw new IllegalArgumentException(sheetName + " sheet not found");
-				}
-				Sheet sh = wb.getSheet(sheetName);
-				Row row = sh.getRow(RowNo - 1);
-				if (row == null)
-					throw new IllegalArgumentException(sheetName + " Row not found");
-
-				Cell cell = row.getCell(ColumnNo - 1);
-
-				if (cell == null)
-					throw new IllegalArgumentException(sheetName + " Column not found");
-
-				cell.setCellType(CellType.STRING);
-				value = cell.getStringCellValue();
-				inputStream.close();
-			}
-		} catch (Exception e) {
-			System.out.println(e.getMessage());
-			e.printStackTrace();
-			Assert.fail(e.getMessage());
-		}
-		return value;
-
 	}
 
 	public void ScrollToWebElement(String label) throws IOException {
@@ -503,119 +431,74 @@ public class initialization extends WordEvidenceBaseMethods {
 		return returnVal;
 	}
 
-	public boolean checkLocatorPresence(String label) throws IOException {
-		WebElement ele = null;
+	public void WritetoExcelUsingSheetnameAndColumn(String sheetName, int RowNo, int ColumnNo, String Data) {
 
+		File file = new File(System.getProperty("user.dir") + "/src/main/resources/DataInputAndOutput.xlsx");
+		FileInputStream inputStream;
 		try {
-			String labelText = locatorString.getProperty(label);
-			String labelTextArray[] = labelText.split("~");
-			String method = labelTextArray[0];
-			String loc = labelTextArray[1];
-			driver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
-			WebDriverWait w = new WebDriverWait(driver, Duration.ofSeconds(5));
-			switch (method) {
+			inputStream = new FileInputStream(file);
 
-			case "id":
-				w.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(By.id(loc)));
-				w.until(ExpectedConditions.elementToBeClickable(By.id(loc)));
-				ele = driver.findElement(By.id(loc));
-				break;
+			try (Workbook wb = new XSSFWorkbook(inputStream)) {
+				if (wb.getSheetIndex(sheetName) == -1) {
+					throw new IllegalArgumentException(sheetName + " sheet not found");
+				}
+				Sheet sh = wb.getSheet(sheetName);
+				Row row = sh.getRow(RowNo - 1);
+				if (row == null) {
+					row = sh.createRow(RowNo - 1);
+				}
+				Cell cell = row.getCell(ColumnNo - 1);
+				if (cell == null)
+					cell = row.createCell(ColumnNo - 1);
+				cell.setCellValue(Data);
 
-			case "xpath":
-				w.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(By.xpath(loc)));
-				w.until(ExpectedConditions.elementToBeClickable(By.xpath(loc)));
-				ele = driver.findElement(By.xpath(loc));
-				break;
-
-			case "linktext":
-				w.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(By.linkText(loc)));
-				w.until(ExpectedConditions.elementToBeClickable(By.linkText(loc)));
-				ele = driver.findElement(By.linkText(loc));
-				break;
-
-			case "partiallinktext":
-				w.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(By.partialLinkText(loc)));
-				w.until(ExpectedConditions.elementToBeClickable(By.partialLinkText(loc)));
-				ele = driver.findElement(By.partialLinkText(loc));
-				break;
-
-			case "css":
-				w.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(By.cssSelector(loc)));
-				w.until(ExpectedConditions.elementToBeClickable(By.cssSelector(loc)));
-				ele = driver.findElement(By.cssSelector(loc));
-				break;
-			case "classname":
-				ele = driver.findElement(By.className(loc));
-				break;
-			case "name":
-				ele = driver.findElement(By.name(loc));
-				break;
-			case "tagname":
-				ele = driver.findElement(By.tagName(loc));
-				break;
-			default:
-				System.out.println("Invalid locator type");
-				throw new IllegalArgumentException("Invalid locator type:" + label);
-
+				FileOutputStream fos = new FileOutputStream(
+						System.getProperty("user.dir") + "/src/main/resources/DataInputAndOutput.xlsx");
+				wb.write(fos);
+				inputStream.close();
+				fos.close();
 			}
-		} catch (Exception Ex) {
-			return false;
-		} finally {
-			driver.manage().timeouts().implicitlyWait(20, TimeUnit.SECONDS);
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+			e.printStackTrace();
+			Assert.fail(e.getMessage());
 		}
-		return true;
+
 	}
 
-	public int getCellDataFromExcel(String path, String colVal) throws IOException {
-		int rowExactNumber = 0;
-		double cellVal = 0;
-		File fi = new File(path);
-		FileInputStream inputStream = null;
-		Workbook wb;
-		Cell cell;
-		int i;
-		int convtIntVal = 0;
-		int rowCount;
-		Sheet sh;
+	public String ReadFromExcelUsingSheetnameAndColumn(String sheetName, int RowNo, int ColumnNo) {
+
+		File file = new File(System.getProperty("user.dir") + "/src/main/resources/DataInputAndOutput.xlsx");
+		FileInputStream inputStream;
+		String value = "";
 		try {
-			inputStream = new FileInputStream(fi);
-			wb = new XSSFWorkbook(inputStream);
-			if (wb.getSheetIndex("Sheet1") == -1) {
-				throw new IllegalArgumentException("Sheet1" + " sheet not found");
-			}
-			sh = wb.getSheet("Sheet1");
-			rowCount = sh.getLastRowNum() - sh.getFirstRowNum();
+			inputStream = new FileInputStream(file);
 
-			for (i = 6; i < rowCount; i++) {
-				// System.out.println(sh.getRow(8).getCell(0).getStringCellValue());
-				if (((sh.getRow(i).getCell(0).getStringCellValue().trim()).equals(colVal.trim()))) {
-					System.out.println(" Record is found in the list");
-					rowExactNumber = i;
-					System.out.println("Exact No" + rowExactNumber);
-					cell = sh.getRow(rowExactNumber).getCell(1);
-					cellVal = cell.getNumericCellValue();
-					// System.out.println("cell val"+cellVal.intValue());
-					convtIntVal = (int) Math.round(cellVal);
-					/*
-					 * for(k=1;k<5;k++) { cell = sh.getRow(rowExactNumber).getCell(k); cellVal=
-					 * cell.getNumericCellValue(); convtIntVal= (int) Math.round(cellVal); }
-					 */
-					// arrayOfCellData.add(convtIntVal);
-
+			try (Workbook wb = new XSSFWorkbook(inputStream)) {
+				if (wb.getSheetIndex(sheetName) == -1) {
+					throw new IllegalArgumentException(sheetName + " sheet not found");
 				}
+				Sheet sh = wb.getSheet(sheetName);
+				Row row = sh.getRow(RowNo - 1);
+				if (row == null)
+					throw new IllegalArgumentException(sheetName + " Row not found");
+
+				Cell cell = row.getCell(ColumnNo - 1);
+
+				if (cell == null)
+					throw new IllegalArgumentException(sheetName + " Column not found");
+
+				cell.setCellType(CellType.STRING);
+				value = cell.getStringCellValue();
+				inputStream.close();
 			}
-			System.out.println("CellValues:" + convtIntVal);
-			wb.close();
-			inputStream.close();
-			fi.delete();
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
+		} catch (Exception e) {
 			System.out.println(e.getMessage());
-		} catch (IOException e) {
 			e.printStackTrace();
-			System.out.println(e.getMessage());
+			Assert.fail(e.getMessage());
 		}
-		return convtIntVal;
+		return value;
+
 	}
 
 }
