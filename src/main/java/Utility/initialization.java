@@ -367,49 +367,6 @@ public class initialization extends WordEvidenceBaseMethods {
 
 	}
 
-	public int getExcelColumnCellDataNumber(String path, int startcolNum, int searchColNum, String orderEntity,
-			int expColNum) {
-		File file = new File(path);
-		FileInputStream inputStream = null;
-		Workbook wb = null;
-		Sheet sheet;
-		int rowCounter = 0, count = 0;
-		int resultCount = 0;
-		try {
-			inputStream = new FileInputStream(file);
-			wb = new XSSFWorkbook(inputStream);
-			if (wb.getSheetIndex("Sheet1") == -1) {
-				throw new IllegalArgumentException("Sheet1" + " sheet not found");
-			}
-			sheet = wb.getSheet("Sheet1");
-			int rowCounts = sheet.getPhysicalNumberOfRows();
-			for (rowCounter = startcolNum; rowCounter < rowCounts; rowCounter++) {
-				System.out.println(
-						"Expected val:" + sheet.getRow(rowCounter).getCell(searchColNum).getStringCellValue().trim());
-				System.out.println("actual val" + orderEntity.trim());
-				if ((sheet.getRow(rowCounter).getCell(searchColNum).getStringCellValue().trim())
-						.equals(orderEntity.trim())) {
-					count = rowCounter;
-					System.out.println("get value of No of order lines :"
-							+ sheet.getRow(count).getCell(expColNum).getNumericCellValue());
-					resultCount = (int) sheet.getRow(count).getCell(expColNum).getNumericCellValue();
-					break;
-				}
-			}
-			System.out.println("Result Count of respective column :" + resultCount);
-			inputStream.close();
-			wb.close();
-			// file.delete();
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-			System.out.println(e.getMessage());
-		} catch (IOException e) {
-			e.printStackTrace();
-			System.out.println(e.getMessage());
-		}
-		return resultCount;
-	}
-
 	public void selectbyDropDownValue(String label, String text) throws InterruptedException {
 		try {
 			WebElement ele = creatLocator(label);
@@ -419,7 +376,7 @@ public class initialization extends WordEvidenceBaseMethods {
 			System.out.println(ex);
 		}
 	}
-
+                        
 	public String getInputTextFieldValue(String label) {
 		String returnVal = null;
 		try {
