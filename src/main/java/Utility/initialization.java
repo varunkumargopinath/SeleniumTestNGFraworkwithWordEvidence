@@ -14,7 +14,6 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
@@ -27,7 +26,6 @@ import org.openqa.selenium.edge.EdgeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.Assert;
 
@@ -35,7 +33,7 @@ public class initialization extends WordEvidenceBaseMethods {
 
 	public static WebDriver driver;
 	public static String browser;
-	public static Properties locatorString, data;
+	public static Properties data;
 	public static WebDriverWait wait;
 	public JavascriptExecutor js;
 	public Actions actions;
@@ -47,34 +45,28 @@ public class initialization extends WordEvidenceBaseMethods {
 		return src.getPath();
 	}
 
-	public void initProperties() throws Exception {
-
-		File locFile = new File(System.getProperty("user.dir") + "/locators.properties");
+	public void initProperties() throws IOException {
 		File datafile = new File(System.getProperty("user.dir") + "/data.properties");
-		FileInputStream locInput = null;
-		FileInputStream dataInput = null;
-		try {
-			locInput = new FileInputStream(locFile);
-			dataInput = new FileInputStream(datafile);
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
-		locatorString = new Properties();
-		data = new Properties();
-		try {
-			locatorString.load(locInput);
-			data.load(dataInput);
 
-		} catch (IOException e) {
-			e.printStackTrace();
+		if (!datafile.exists()) {
+			throw new FileNotFoundException("Properties file not found: " + datafile.getAbsolutePath());
 		}
-		locInput.close();
-		dataInput.close();
+
+		data = new Properties();
+
+		// Try-with-resources to ensure automatic closing
+		try (FileInputStream dataInput = new FileInputStream(datafile)) {
+			data.load(dataInput);
+		} catch (IOException e) {
+			e.printStackTrace(); // Consider using a logger instead of printing stack trace
+			throw e; // Re-throw exception if needed
+		}
 	}
 
 	public WebDriver launchBrowser(String browser) throws InterruptedException, IOException {
-		this.browser = browser;
-		switch (browser) {
+		initialization.browser = browser;
+
+		switch (initialization.browser) {
 
 		case "firefox":
 			driver = new FirefoxDriver();
@@ -110,80 +102,11 @@ public class initialization extends WordEvidenceBaseMethods {
 		String env = "https://demowebshop.tricentis.com/";
 		System.out.println(env);
 		driver.get(env);
-		driver.manage().timeouts().implicitlyWait(20, TimeUnit.SECONDS);
+		//Timeouts in milliseconds fetched from data.properties file
+		driver.manage().timeouts().implicitlyWait(Integer.valueOf(data.getProperty("ImpliciteWaitTime")),
+				TimeUnit.MILLISECONDS);
+		
 		return driver;
-	}
-
-	public WebElement creatLocator(String label) throws IOException {
-		WebElement ele = null;
-		wait = new WebDriverWait(driver, Duration.ofSeconds(30));
-		js = (JavascriptExecutor) driver;
-		try {
-			String labelText = locatorString.getProperty(label);
-			String labelTextArray[] = labelText.split("~");
-			String method = labelTextArray[0];
-			String loc = labelTextArray[1];
-
-			switch (method) {
-
-			case "id":
-				wait.until(ExpectedConditions.visibilityOfElementLocated(By.id(loc)));
-				wait.until(ExpectedConditions.elementToBeClickable(By.id(loc)));
-				ele = driver.findElement(By.id(loc));
-				break;
-
-			case "xpath":
-				wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(loc)));
-				wait.until(ExpectedConditions.elementToBeClickable(By.xpath(loc)));
-				ele = driver.findElement(By.xpath(loc));
-				break;
-
-			case "linktext":
-				wait.until(ExpectedConditions.visibilityOfElementLocated(By.linkText(loc)));
-				wait.until(ExpectedConditions.elementToBeClickable(By.linkText(loc)));
-				ele = driver.findElement(By.linkText(loc));
-				break;
-
-			case "partiallinktext":
-				wait.until(ExpectedConditions.visibilityOfElementLocated(By.partialLinkText(loc)));
-				wait.until(ExpectedConditions.elementToBeClickable(By.partialLinkText(loc)));
-				ele = driver.findElement(By.partialLinkText(loc));
-				break;
-
-			case "css":
-				wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(loc)));
-				wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(loc)));
-				ele = driver.findElement(By.cssSelector(loc));
-				break;
-			case "classname":
-				wait.until(ExpectedConditions.visibilityOfElementLocated(By.className(loc)));
-				wait.until(ExpectedConditions.elementToBeClickable(By.className(loc)));
-				ele = driver.findElement(By.className(loc));
-				break;
-			case "name":
-				wait.until(ExpectedConditions.visibilityOfElementLocated(By.name(loc)));
-				wait.until(ExpectedConditions.elementToBeClickable(By.name(loc)));
-				ele = driver.findElement(By.name(loc));
-				break;
-			case "tagname":
-				wait.until(ExpectedConditions.visibilityOfElementLocated(By.tagName(loc)));
-				wait.until(ExpectedConditions.elementToBeClickable(By.tagName(loc)));
-				ele = driver.findElement(By.tagName(loc));
-				break;
-			default:
-				System.out.println("Invalid locator type");
-				break;
-
-			}
-
-		} catch (Exception Ex) {
-			System.out.println("*****************************************");
-			System.out.println("Webelement creation failed for: " + label);
-			Ex.printStackTrace();
-			System.out.println("*****************************************");
-			Assert.fail("Webelement creation failed for: " + label);
-		}
-		return ele;
 	}
 
 	public void stop() {
@@ -194,16 +117,17 @@ public class initialization extends WordEvidenceBaseMethods {
 		}
 	}
 
-	public void clickOnElement(String label) {
+	public void clickOnElement(WebElement ele,String EvidenceLogName) {
 		try {
-			WebElement ele = creatLocator(label);
+			wait= new WebDriverWait(driver, Duration.ofMillis(Integer.valueOf(data.getProperty("WebdriverWaitTime"))));
 			wait.until(ExpectedConditions.visibilityOf(ele));
-			wait.until(ExpectedConditions.elementToBeClickable(ele));
+			//wait.until(ExpectedConditions.and(ExpectedConditions.visibilityOf(ele),
+			//		ExpectedConditions.elementToBeClickable(ele), ExpectedConditions.elementToBeSelected(ele)));
 			js = (JavascriptExecutor) driver;
 			js.executeScript("arguments[0].setAttribute('style', 'background: yellow; border: 2px solid red;');", ele);
-			EnterTestStepDescriptionWithScreenshotForInfo(new String[] { "Clicked on \"" + label + "\"" });
-			js.executeScript("arguments[0].click();", ele);
-			// ele.click();
+			EnterTestStepDescriptionWithScreenshotForInfo(new String[] { "Clicked on \"" + EvidenceLogName + "\"" });
+			// js.executeScript("arguments[0].click();", ele);
+			ele.click();
 		} catch (Exception e) {
 			e.printStackTrace();
 			Assert.fail(e.getMessage());
@@ -218,27 +142,95 @@ public class initialization extends WordEvidenceBaseMethods {
 
 	}
 
-	public void selectbyDropDown(String locator, String text) throws InterruptedException, IOException {
-		WebElement ele = creatLocator(locator);
-		Select sel = new Select(ele);
-		sel.selectByVisibleText(text);
-
-	}
-
-	public void sendText(String locator, String text) {
-		try {
-			WebElement ele = creatLocator(locator);
-			wait.until(ExpectedConditions.visibilityOf(ele));
-			ele.sendKeys(text);
-			js = (JavascriptExecutor) driver;
-			js.executeScript("arguments[0].setAttribute('style', 'background: yellow; border: 2px solid red;');", ele);
-			EnterTestStepDescriptionWithScreenshotForInfo(
-					new String[] { "Enter \"" + text + "\" in the \"" + locator + "\" Field" });
-
-		} catch (Exception ex) {
-			System.out.println(ex);
-		}
-	}
+//	public void sendText(String locator, String text) {
+//		try {
+//			WebElement ele = creatLocator(locator);
+//			wait.until(ExpectedConditions.visibilityOf(ele));
+//			ele.sendKeys(text);
+//			js = (JavascriptExecutor) driver;
+//			js.executeScript("arguments[0].setAttribute('style', 'background: yellow; border: 2px solid red;');", ele);
+//			EnterTestStepDescriptionWithScreenshotForInfo(
+//					new String[] { "Enter \"" + text + "\" in the \"" + locator + "\" Field" });
+//
+//		} catch (Exception ex) {
+//			System.out.println(ex);
+//		}
+//	}
+//
+//	public String getTextfromElement(String label) {
+//		String returnVal = null;
+//		try {
+//			WebElement ele = creatLocator(label);
+//			returnVal = ele.getText();
+//
+//		} catch (Exception ex) {
+//			System.out.println(ex);
+//		}
+//		return returnVal;
+//	}
+//
+//	public void ScrollToWebElement(String label) throws IOException {
+//		WebElement ele = null;
+//		try {
+//			String labelText = locatorString.getProperty(label);
+//			String labelTextArray[] = labelText.split("~");
+//			String method = labelTextArray[0];
+//			String loc = labelTextArray[1];
+//
+//			switch (method) {
+//
+//			case "id":
+//				ele = driver.findElement(By.id(loc));
+//				break;
+//			case "xpath":
+//				ele = driver.findElement(By.xpath(loc));
+//				break;
+//			case "linktext":
+//				ele = driver.findElement(By.linkText(loc));
+//				break;
+//			case "partiallinktext":
+//				ele = driver.findElement(By.partialLinkText(loc));
+//				break;
+//			case "css":
+//				ele = driver.findElement(By.cssSelector(loc));
+//				break;
+//			case "classname":
+//				ele = driver.findElement(By.className(loc));
+//				break;
+//			case "name":
+//				ele = driver.findElement(By.name(loc));
+//				break;
+//			case "tagname":
+//				ele = driver.findElement(By.tagName(loc));
+//				break;
+//			default:
+//				System.out.println("Invalid locator type");
+//				break;
+//			}
+//
+//			js.executeScript("arguments[0].scrollIntoView();", ele);
+//			Thread.sleep(Integer.valueOf(data.getProperty("TWO_SECOND")));
+//		} catch (Exception Ex) {
+//			System.out.println("*****************************************");
+//			System.out.println("Scroll for Webelement  failed for: " + label);
+//			Ex.printStackTrace();
+//			System.out.println("*****************************************");
+//			Assert.fail("Scroll for Webelement  failed for: " + label);
+//		}
+//
+//	}
+//
+//	public void clearTextField(String label) throws InterruptedException {
+//		try {
+//			WebElement ele = creatLocator(label);
+//
+//			ele.clear();
+//
+//		} catch (Exception ex) {
+//			System.out.println(ex.getMessage());
+//		}
+//
+//	}
 
 	public Object[][] readDataFromExcel(String sheetName) {
 		String path = System.getProperty("user.dir") + "/src/main/resources/DataInputAndOutput.xlsx";
@@ -290,102 +282,6 @@ public class initialization extends WordEvidenceBaseMethods {
 			Assert.fail(e.getMessage());
 		}
 		return Data;
-	}
-
-	public void ScrollToWebElement(String label) throws IOException {
-		WebElement ele = null;
-		try {
-			String labelText = locatorString.getProperty(label);
-			String labelTextArray[] = labelText.split("~");
-			String method = labelTextArray[0];
-			String loc = labelTextArray[1];
-
-			switch (method) {
-
-			case "id":
-				ele = driver.findElement(By.id(loc));
-				break;
-			case "xpath":
-				ele = driver.findElement(By.xpath(loc));
-				break;
-			case "linktext":
-				ele = driver.findElement(By.linkText(loc));
-				break;
-			case "partiallinktext":
-				ele = driver.findElement(By.partialLinkText(loc));
-				break;
-			case "css":
-				ele = driver.findElement(By.cssSelector(loc));
-				break;
-			case "classname":
-				ele = driver.findElement(By.className(loc));
-				break;
-			case "name":
-				ele = driver.findElement(By.name(loc));
-				break;
-			case "tagname":
-				ele = driver.findElement(By.tagName(loc));
-				break;
-			default:
-				System.out.println("Invalid locator type");
-				break;
-			}
-
-			js.executeScript("arguments[0].scrollIntoView();", ele);
-			Thread.sleep(Integer.valueOf(data.getProperty("TWO_SECOND")));
-		} catch (Exception Ex) {
-			System.out.println("*****************************************");
-			System.out.println("Scroll for Webelement  failed for: " + label);
-			Ex.printStackTrace();
-			System.out.println("*****************************************");
-			Assert.fail("Scroll for Webelement  failed for: " + label);
-		}
-
-	}
-
-	public String getTextfromElement(String label) {
-		String returnVal = null;
-		try {
-			WebElement ele = creatLocator(label);
-			returnVal = ele.getText();
-
-		} catch (Exception ex) {
-			System.out.println(ex);
-		}
-		return returnVal;
-	}
-
-	public void clearTextField(String label) throws InterruptedException {
-		try {
-			WebElement ele = creatLocator(label);
-
-			ele.clear();
-
-		} catch (Exception ex) {
-			System.out.println(ex.getMessage());
-		}
-
-	}
-
-	public void selectbyDropDownValue(String label, String text) throws InterruptedException {
-		try {
-			WebElement ele = creatLocator(label);
-			Select sel = new Select(ele);
-			sel.selectByValue(text);
-		} catch (Exception ex) {
-			System.out.println(ex);
-		}
-	}
-                        
-	public String getInputTextFieldValue(String label) {
-		String returnVal = null;
-		try {
-			WebElement ele = creatLocator(label);
-			returnVal = ele.getAttribute("value");
-		} catch (Exception ex) {
-			System.out.println(ex);
-		}
-		return returnVal;
 	}
 
 	public void WritetoExcelUsingSheetnameAndColumn(String sheetName, int RowNo, int ColumnNo, String Data) {

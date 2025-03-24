@@ -23,7 +23,7 @@ public class BaseMethods extends initialization {
 	@BeforeTest
 	public void startup() throws Exception {
 		init.initProperties();
-		init.launchBrowser(browser);
+		driver = init.launchBrowser(browser);
 		StartWordReader();
 	}
 
@@ -74,6 +74,6 @@ public class BaseMethods extends initialization {
 
 	@AfterSuite
 	public void afterSuite() {
-		init.stop();
+		//init.stop();
 	}
 }
