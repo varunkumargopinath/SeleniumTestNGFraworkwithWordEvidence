@@ -1,11 +1,10 @@
-<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd" >
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
 <suite name="SeleniumTestNGFraworkwithWordEvidence">
-	<parameter name="browser" value="chrome" />
-	<parameter name="tool" value="Google" />
+	<parameter name="browser" value="edge" />
+	<parameter name="environment" value="https://demowebshop.tricentis.com/" />
 	<test name="Word Evidence">
 		<classes>
 			<class name="Tests.playground" />
 		</classes>
-	</test><!--   Test   -->
-</suite><!--   Suite   -->
- 
+	</test>
+</suite>

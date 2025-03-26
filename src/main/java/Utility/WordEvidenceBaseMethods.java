@@ -27,15 +27,12 @@ import org.testng.Assert;
 public class WordEvidenceBaseMethods {
 	
 	// Apache Word Evidence variables
-	public static String TestScriptName = "TS.01.01. Create and Order";
 	public static int TestStepNo = 0;
 	XWPFTable TestEnvDetailsTable ;
 	public static XWPFDocument Evidence = new XWPFDocument();
 
-	public void StartWordReader() {
+	public void StartWordReader(String TestScriptName,String environment) {
 
-		String env = System.getProperty("env");
-		env = "https://demowebshop.tricentis.com/";
 		try {
 
 			XWPFHeader header = Evidence.createHeader(HeaderFooterType.DEFAULT);
@@ -68,7 +65,7 @@ public class WordEvidenceBaseMethods {
 			setColumnWidths(TestEnvDetailsTable, new int[] { 2200, 7300 });
 			TestEnvDetailsTable.getRow(0).getCell(0)
 					.setParagraph(EnterTextParagraph("Test Instance URL", true, "000000", 11));
-			TestEnvDetailsTable.getRow(0).addNewTableCell().setParagraph(EnterTextParagraph(env, false, "000000", 11));
+			TestEnvDetailsTable.getRow(0).addNewTableCell().setParagraph(EnterTextParagraph(environment, false, "000000", 11));
 			TestEnvDetailsTable.createRow().getCell(0)
 					.setParagraph(EnterTextParagraph("Host Machine Name", true, "000000", 11));
 			TestEnvDetailsTable.getRow(1).getCell(1)
@@ -139,6 +136,31 @@ public class WordEvidenceBaseMethods {
 
 	}
 
+	public static void EnterTestStepDescriptionWithScreenshotForFail(String[] LogDescriptionArr) {
+		try {
+
+			XWPFTable ExecutionTable = Evidence.createTable();
+			XWPFTableRow addrow = ExecutionTable.getRow(0);
+			addrow.getCell(0).setParagraph(EnterTextParagraph(String.valueOf(++TestStepNo), false, "000000", 11));
+			addrow.createCell().setParagraph(EnterTextParagraphWithAddBreak(LogDescriptionArr, false, "FF0000", 11));
+			addrow.createCell().setParagraph(EnterTextParagraph("Info", false, "000000", 11));
+			setColumnWidths(ExecutionTable, new int[] { 1000, 7500, 1000 });
+
+			XWPFTable ScreenshotTable = Evidence.createTable();
+			setColumnWidths(ScreenshotTable, new int[] { 9500 });
+			XWPFParagraph TempPar= EnterScreenshotParagraph();
+			ScreenshotTable.getRow(0).getCell(0).setParagraph(TempPar);
+			TempPar.removeRun(0);
+			Evidence.removeBodyElement(Evidence.getPosOfParagraph(TempPar));
+
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+			Assert.fail(e.getMessage());
+		}
+
+	}
+	
 	public static XWPFParagraph EnterScreenshotParagraph() {
 		XWPFParagraph ScreenshotPar = null;
 		

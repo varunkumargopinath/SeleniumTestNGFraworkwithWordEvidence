@@ -14,17 +14,18 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.AfterSuite;
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
+import org.testng.annotations.Parameters;
 
 public class BaseMethods extends initialization {
 	public initialization init = new initialization();
 	public static boolean FlagForAllTestPass = true;
-	public static String browser = "chrome";
 
 	@BeforeTest
-	public void startup() throws Exception {
+	@Parameters({"browser","environment"})
+	public void startup(String browser,String environment,ITestContext testNamefromXMLFile) throws Exception {
 		init.initProperties();
 		driver = init.launchBrowser(browser);
-		StartWordReader();
+		StartWordReader(testNamefromXMLFile.getName(),environment);
 	}
 
 	@AfterMethod

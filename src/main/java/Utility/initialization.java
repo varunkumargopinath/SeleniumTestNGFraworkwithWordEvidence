@@ -102,10 +102,11 @@ public class initialization extends WordEvidenceBaseMethods {
 		String env = "https://demowebshop.tricentis.com/";
 		System.out.println(env);
 		driver.get(env);
-		//Timeouts in milliseconds fetched from data.properties file
+		// Timeouts in milliseconds fetched from data.properties file
 		driver.manage().timeouts().implicitlyWait(Integer.valueOf(data.getProperty("ImpliciteWaitTime")),
 				TimeUnit.MILLISECONDS);
-		
+		wait = new WebDriverWait(driver, Duration.ofMillis(Integer.valueOf(data.getProperty("WebdriverWaitTime"))));
+
 		return driver;
 	}
 
@@ -117,120 +118,92 @@ public class initialization extends WordEvidenceBaseMethods {
 		}
 	}
 
-	public void clickOnElement(WebElement ele,String EvidenceLogName) {
+	public void clickOnElement(WebElement ele, String EvidenceLogName) {
 		try {
-			wait= new WebDriverWait(driver, Duration.ofMillis(Integer.valueOf(data.getProperty("WebdriverWaitTime"))));
-			wait.until(ExpectedConditions.visibilityOf(ele));
-			//wait.until(ExpectedConditions.and(ExpectedConditions.visibilityOf(ele),
-			//		ExpectedConditions.elementToBeClickable(ele), ExpectedConditions.elementToBeSelected(ele)));
+			wait.until(ExpectedConditions.and(ExpectedConditions.visibilityOf(ele),
+					ExpectedConditions.elementToBeClickable(ele)));
 			js = (JavascriptExecutor) driver;
 			js.executeScript("arguments[0].setAttribute('style', 'background: yellow; border: 2px solid red;');", ele);
-			EnterTestStepDescriptionWithScreenshotForInfo(new String[] { "Clicked on \"" + EvidenceLogName + "\"" });
 			// js.executeScript("arguments[0].click();", ele);
 			ele.click();
+			EnterTestStepDescriptionWithScreenshotForInfo(new String[] { "Clicked on \"" + EvidenceLogName + "\"" });
 		} catch (Exception e) {
 			e.printStackTrace();
+			EnterTestStepDescriptionWithScreenshotForFail(
+					new String[] { "Click on \"" + EvidenceLogName + "\" Failed " + ele.toString() });
 			Assert.fail(e.getMessage());
 		}
 
 	}
 
+	public void enterText(WebElement ele, String text, String EvidenceLogName) {
+		try {
+			wait.until(ExpectedConditions.and(ExpectedConditions.visibilityOf(ele),
+					ExpectedConditions.elementToBeClickable(ele)));
+			ele.sendKeys(text);
+			js = (JavascriptExecutor) driver;
+			js.executeScript("arguments[0].setAttribute('style', 'background: yellow; border: 2px solid red;');", ele);
+			EnterTestStepDescriptionWithScreenshotForInfo(
+					new String[] { "Enter \"" + text + "\" in the \"" + EvidenceLogName + "\" Field " });
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			EnterTestStepDescriptionWithScreenshotForFail(
+					new String[] { "Click on \"" + EvidenceLogName + "\" Failed " + ele.toString() });
+			Assert.fail(e.getMessage());
+		}
+	}
+
 	public void doubleClickOnElement(WebElement ele) throws InterruptedException, IOException {
+		wait.until(ExpectedConditions.and(ExpectedConditions.visibilityOf(ele),
+				ExpectedConditions.elementToBeClickable(ele)));
 		actions = new Actions(driver);
 		actions.doubleClick(ele).build().perform();
-		Thread.sleep(Integer.valueOf(data.getProperty("ONE_SECOND")));
 
 	}
 
-//	public void sendText(String locator, String text) {
-//		try {
-//			WebElement ele = creatLocator(locator);
-//			wait.until(ExpectedConditions.visibilityOf(ele));
-//			ele.sendKeys(text);
-//			js = (JavascriptExecutor) driver;
-//			js.executeScript("arguments[0].setAttribute('style', 'background: yellow; border: 2px solid red;');", ele);
-//			EnterTestStepDescriptionWithScreenshotForInfo(
-//					new String[] { "Enter \"" + text + "\" in the \"" + locator + "\" Field" });
-//
-//		} catch (Exception ex) {
-//			System.out.println(ex);
-//		}
-//	}
-//
-//	public String getTextfromElement(String label) {
-//		String returnVal = null;
-//		try {
-//			WebElement ele = creatLocator(label);
-//			returnVal = ele.getText();
-//
-//		} catch (Exception ex) {
-//			System.out.println(ex);
-//		}
-//		return returnVal;
-//	}
-//
-//	public void ScrollToWebElement(String label) throws IOException {
-//		WebElement ele = null;
-//		try {
-//			String labelText = locatorString.getProperty(label);
-//			String labelTextArray[] = labelText.split("~");
-//			String method = labelTextArray[0];
-//			String loc = labelTextArray[1];
-//
-//			switch (method) {
-//
-//			case "id":
-//				ele = driver.findElement(By.id(loc));
-//				break;
-//			case "xpath":
-//				ele = driver.findElement(By.xpath(loc));
-//				break;
-//			case "linktext":
-//				ele = driver.findElement(By.linkText(loc));
-//				break;
-//			case "partiallinktext":
-//				ele = driver.findElement(By.partialLinkText(loc));
-//				break;
-//			case "css":
-//				ele = driver.findElement(By.cssSelector(loc));
-//				break;
-//			case "classname":
-//				ele = driver.findElement(By.className(loc));
-//				break;
-//			case "name":
-//				ele = driver.findElement(By.name(loc));
-//				break;
-//			case "tagname":
-//				ele = driver.findElement(By.tagName(loc));
-//				break;
-//			default:
-//				System.out.println("Invalid locator type");
-//				break;
-//			}
-//
-//			js.executeScript("arguments[0].scrollIntoView();", ele);
-//			Thread.sleep(Integer.valueOf(data.getProperty("TWO_SECOND")));
-//		} catch (Exception Ex) {
-//			System.out.println("*****************************************");
-//			System.out.println("Scroll for Webelement  failed for: " + label);
-//			Ex.printStackTrace();
-//			System.out.println("*****************************************");
-//			Assert.fail("Scroll for Webelement  failed for: " + label);
-//		}
-//
-//	}
-//
-//	public void clearTextField(String label) throws InterruptedException {
-//		try {
-//			WebElement ele = creatLocator(label);
-//
-//			ele.clear();
-//
-//		} catch (Exception ex) {
-//			System.out.println(ex.getMessage());
-//		}
-//
-//	}
+	public String getTextfromElement(WebElement ele) {
+		String capturedText = null;
+		try {
+
+			wait.until(ExpectedConditions.and(ExpectedConditions.visibilityOf(ele),
+					ExpectedConditions.elementToBeClickable(ele)));
+			capturedText = ele.getText();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			EnterTestStepDescriptionWithScreenshotForFail(
+					new String[] { "Get text from Webelement Failed " + ele.toString() });
+			Assert.fail(e.getMessage());
+		}
+
+		return capturedText;
+	}
+
+	public void ScrollToWebElement(WebElement ele) throws IOException {
+		try {
+			js.executeScript("arguments[0].scrollIntoView();", ele);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			EnterTestStepDescriptionWithScreenshotForFail(new String[] { "Scroll to Failed " + ele.toString() });
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	public void clearTextField(WebElement ele) throws InterruptedException {
+		try {
+			wait.until(ExpectedConditions.and(ExpectedConditions.visibilityOf(ele),
+					ExpectedConditions.elementToBeClickable(ele)));
+			ele.clear();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			EnterTestStepDescriptionWithScreenshotForFail(new String[] { "clear text Failed for " + ele.toString() });
+			Assert.fail(e.getMessage());
+		}
+
+	}
 
 	public Object[][] readDataFromExcel(String sheetName) {
 		String path = System.getProperty("user.dir") + "/src/main/resources/DataInputAndOutput.xlsx";

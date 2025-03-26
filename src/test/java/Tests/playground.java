@@ -3,6 +3,7 @@ package Tests;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import PagesDemoWebShop.HomePage;
 import PagesDemoWebShop.LoginPage;
 import Utility.BaseMethods;
 public class playground extends BaseMethods {
@@ -14,13 +15,14 @@ public class playground extends BaseMethods {
 		try {
 			LoginPage logingpage= new LoginPage(driver);
 			clickOnElement(logingpage.LoginLink,"Login");
+			enterText(logingpage.email,"varunkumar@test.com", "Email");
+			enterText(logingpage.password,"varunkumar", "Password");
+			clickOnElement(logingpage.logInBtn,"Log In");
+			HomePage homepage = new HomePage(driver);
+			clickOnElement(homepage.booksLinkTopMenu, "Books top menu");
+			clickOnElement(homepage.firstBookAddtoCart, "Add to cart");
 			
-			
-//			clickOnElement("AddtoCartFrstEle");
-//			clickOnElement("shoppingcart");
-//			clickOnElement("RemoveCheckbox");
-//			clickOnElement("updateshoppingcart");
-//			clickOnElement("DemoWebshopHomeBtn");
+
 			
 		} catch (Exception e) {
 			e.printStackTrace();
