@@ -18,7 +18,7 @@ public class playground extends BaseMethods {
 			
 			clickOnElement(logingpage.LoginLink,"Login");
 			enterText(logingpage.email,"varunkumar@test.com", "Email");
-			enterText(logingpage.password,"varunkumar", "Password");
+			enterText(logingpage.password,"<Enter your password>", "Password");
 			clickOnElement(logingpage.logInBtn,"Log In");
 			
 			HomePage homepage = new HomePage(driver);

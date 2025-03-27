@@ -1,6 +1,5 @@
+Use TestRunner.xml file to run test case
 
-Login credentials needs to be passed via command prompt as mvn build
-Command line run :  mvn clean test -DsuiteXmlFile=<Test case Xml file>
+word file will be created after executing with the name(enter test name in xml )
 
-Example
-mvn clean test -DsuiteXmlFile=Runner.xml  -Denv=https://www.google.com -Duname=abc@xyz.com -Dpass=S2lsb=(encrypted password)
+sample word file evidence uploaded in Word Evidence folder
