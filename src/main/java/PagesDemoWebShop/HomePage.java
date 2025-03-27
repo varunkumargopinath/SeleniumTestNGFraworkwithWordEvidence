@@ -16,6 +16,10 @@ public class HomePage  {
 	@FindBy(xpath="(//*[@value=\"Add to cart\"])[1]")
 	public WebElement firstBookAddtoCart;
 	
+	@FindBy(xpath = "//span[text()='Shopping cart']")
+	public WebElement shoppingcart;
+	
+	
 	public HomePage(WebDriver driver) {
 		this.driver = driver;
 		PageFactory.initElements(driver, this);

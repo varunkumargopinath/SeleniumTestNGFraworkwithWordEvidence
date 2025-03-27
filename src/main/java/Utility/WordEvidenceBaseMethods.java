@@ -83,11 +83,14 @@ public class WordEvidenceBaseMethods {
 			
 			Evidence.createParagraph().createRun().addBreak();
 			Evidence.createParagraph().createRun().addBreak();
+			
+			
 			// Create a table for execution Header
 			XWPFTable ExecutionTableHeader = Evidence.createTable();
 			// Set the width of the table (in points)
 			ExecutionTableHeader.setWidth(9500);
 
+			
 			// create first row
 			XWPFTableRow HeaderRow = ExecutionTableHeader.getRow(0);
 			HeaderRow.getCell(0).setParagraph(EnterTextParagraph("Step No.", true, "000000", 11));
@@ -136,6 +139,31 @@ public class WordEvidenceBaseMethods {
 
 	}
 
+	public static void EnterTestStepDescriptionWithScreenshotForPass(String[] LogDescriptionArr) {
+		try {
+
+			XWPFTable ExecutionTable = Evidence.createTable();
+			XWPFTableRow addrow = ExecutionTable.getRow(0);
+			addrow.getCell(0).setParagraph(EnterTextParagraph(String.valueOf(++TestStepNo), false, "000000", 11));
+			addrow.createCell().setParagraph(EnterTextParagraphWithAddBreak(LogDescriptionArr, false, "007E00", 11));
+			addrow.createCell().setParagraph(EnterTextParagraph("Pass", false, "007E00", 11));
+			setColumnWidths(ExecutionTable, new int[] { 1000, 7500, 1000 });
+
+			XWPFTable ScreenshotTable = Evidence.createTable();
+			setColumnWidths(ScreenshotTable, new int[] { 9500 });
+			XWPFParagraph TempPar= EnterScreenshotParagraph();
+			ScreenshotTable.getRow(0).getCell(0).setParagraph(TempPar);
+			TempPar.removeRun(0);
+			Evidence.removeBodyElement(Evidence.getPosOfParagraph(TempPar));
+
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+			Assert.fail(e.getMessage());
+		}
+
+	}
+	
 	public static void EnterTestStepDescriptionWithScreenshotForFail(String[] LogDescriptionArr) {
 		try {
 
@@ -143,7 +171,7 @@ public class WordEvidenceBaseMethods {
 			XWPFTableRow addrow = ExecutionTable.getRow(0);
 			addrow.getCell(0).setParagraph(EnterTextParagraph(String.valueOf(++TestStepNo), false, "000000", 11));
 			addrow.createCell().setParagraph(EnterTextParagraphWithAddBreak(LogDescriptionArr, false, "FF0000", 11));
-			addrow.createCell().setParagraph(EnterTextParagraph("Info", false, "000000", 11));
+			addrow.createCell().setParagraph(EnterTextParagraph("Fail", false, "FF0000", 11));
 			setColumnWidths(ExecutionTable, new int[] { 1000, 7500, 1000 });
 
 			XWPFTable ScreenshotTable = Evidence.createTable();

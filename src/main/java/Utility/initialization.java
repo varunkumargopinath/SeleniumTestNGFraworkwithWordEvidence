@@ -28,6 +28,7 @@ import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.Assert;
+import org.testng.asserts.SoftAssert;
 
 public class initialization extends WordEvidenceBaseMethods {
 
@@ -38,6 +39,7 @@ public class initialization extends WordEvidenceBaseMethods {
 	public JavascriptExecutor js;
 	public Actions actions;
 	public static String recordList[];
+	public static SoftAssert softassert;
 
 	public static String getScreenshot(WebDriver driver) {
 		TakesScreenshot ts = (TakesScreenshot) driver;
@@ -106,6 +108,8 @@ public class initialization extends WordEvidenceBaseMethods {
 		driver.manage().timeouts().implicitlyWait(Integer.valueOf(data.getProperty("ImpliciteWaitTime")),
 				TimeUnit.MILLISECONDS);
 		wait = new WebDriverWait(driver, Duration.ofMillis(Integer.valueOf(data.getProperty("WebdriverWaitTime"))));
+		js = (JavascriptExecutor) driver;
+		softassert = new SoftAssert();
 
 		return driver;
 	}
@@ -157,18 +161,30 @@ public class initialization extends WordEvidenceBaseMethods {
 	public void doubleClickOnElement(WebElement ele) throws InterruptedException, IOException {
 		wait.until(ExpectedConditions.and(ExpectedConditions.visibilityOf(ele),
 				ExpectedConditions.elementToBeClickable(ele)));
+		js.executeScript("arguments[0].setAttribute('style', 'background: yellow; border: 2px solid red;');", ele);
 		actions = new Actions(driver);
 		actions.doubleClick(ele).build().perform();
 
 	}
 
-	public String getTextfromElement(WebElement ele) {
-		String capturedText = null;
+	public String verifyText(WebElement ele, String expectedText, String EvidenceLogName) {
+		String actualCapturedText = "";
 		try {
 
 			wait.until(ExpectedConditions.and(ExpectedConditions.visibilityOf(ele),
 					ExpectedConditions.elementToBeClickable(ele)));
-			capturedText = ele.getText();
+			js.executeScript("arguments[0].setAttribute('style', 'background: yellow; border: 2px solid red;');", ele);
+			actualCapturedText = ele.getText();
+			if (actualCapturedText.equals(expectedText)) {
+				EnterTestStepDescriptionWithScreenshotForPass(
+						new String[] { "Validation of \" " + EvidenceLogName + "\"", "Expected: " + expectedText,
+								"Actual: " + actualCapturedText });
+			} else {
+				EnterTestStepDescriptionWithScreenshotForFail(
+						new String[] { "Validation of \" " + EvidenceLogName + "\"", "Expected: " + expectedText,
+								"Actual: " + actualCapturedText });
+			}
+			softassert.assertEquals(actualCapturedText, expectedText);
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -177,32 +193,19 @@ public class initialization extends WordEvidenceBaseMethods {
 			Assert.fail(e.getMessage());
 		}
 
-		return capturedText;
+		return actualCapturedText;
 	}
 
 	public void ScrollToWebElement(WebElement ele) throws IOException {
 		try {
 			js.executeScript("arguments[0].scrollIntoView();", ele);
+			js.executeScript("arguments[0].setAttribute('style', 'background: yellow; border: 2px solid red;');", ele);
 
 		} catch (Exception e) {
 			e.printStackTrace();
 			EnterTestStepDescriptionWithScreenshotForFail(new String[] { "Scroll to Failed " + ele.toString() });
 			Assert.fail(e.getMessage());
 		}
-	}
-
-	public void clearTextField(WebElement ele) throws InterruptedException {
-		try {
-			wait.until(ExpectedConditions.and(ExpectedConditions.visibilityOf(ele),
-					ExpectedConditions.elementToBeClickable(ele)));
-			ele.clear();
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			EnterTestStepDescriptionWithScreenshotForFail(new String[] { "clear text Failed for " + ele.toString() });
-			Assert.fail(e.getMessage());
-		}
-
 	}
 
 	public Object[][] readDataFromExcel(String sheetName) {

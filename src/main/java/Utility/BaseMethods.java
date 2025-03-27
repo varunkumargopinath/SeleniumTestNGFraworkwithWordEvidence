@@ -21,17 +21,17 @@ public class BaseMethods extends initialization {
 	public static boolean FlagForAllTestPass = true;
 
 	@BeforeTest
-	@Parameters({"browser","environment"})
-	public void startup(String browser,String environment,ITestContext testNamefromXMLFile) throws Exception {
+	@Parameters({ "browser", "environment" })
+	public void startup(String browser, String environment, ITestContext testNamefromXMLFile) throws Exception {
 		init.initProperties();
 		driver = init.launchBrowser(browser);
-		StartWordReader(testNamefromXMLFile.getName(),environment);
+		StartWordReader(testNamefromXMLFile.getName(), environment);
 	}
 
 	@AfterMethod
 	public void tearDownMethod(ITestResult result) throws IOException {
 		if (result.getStatus() == ITestResult.FAILURE) {
-		
+
 			FlagForAllTestPass = false;
 
 		} else if (result.getStatus() == ITestResult.SUCCESS) {
@@ -39,7 +39,7 @@ public class BaseMethods extends initialization {
 		} else if (result.getStatus() == ITestResult.SKIP) {
 
 		}
-		// init.stop();                   
+		// init.stop();
 	}
 
 	@AfterTest
@@ -71,10 +71,11 @@ public class BaseMethods extends initialization {
 			Evidence.write(new FileOutputStream(passedPath.toString()));
 			Evidence.close();
 		}
+		softassert.assertAll();
 	}
 
 	@AfterSuite
 	public void afterSuite() {
-		//init.stop();
+		// init.stop();
 	}
 }
