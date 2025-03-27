@@ -1,3 +1,5 @@
+This is maven project with testng framework
+
 Use TestRunner.xml file to run test case
 
 word file will be created after executing with the name(enter test name in xml )
